@@ -1,0 +1,56 @@
+
+import os
+import telebot
+from telebot import types
+from flask import Flask
+from threading import Thread
+
+TOKEN = os.environ["BOT_TOKEN"]
+
+bot = telebot.TeleBot(TOKEN)
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Kiyomaru Shop is running!"
+
+@bot.message_handler(commands=["start"])
+def start(message):
+    keyboard = types.ReplyKeyboardMarkup(
+        resize_keyboard=True
+    )
+    keyboard.row("⭐ Купить звёзды")
+    keyboard.row("📦 Мои заказы", "💬 Поддержка")
+
+    bot.send_message(
+        message.chat.id,
+        "💙 Добро пожаловать в Kiyomaru Shop!\n\n"
+        "Выберите нужный раздел:",
+        reply_markup=keyboard
+    )
+
+@bot.message_handler(func=lambda message: True)
+def menu(message):
+    if message.text == "⭐ Купить звёзды":
+        bot.send_message(
+            message.chat.id,
+            "⭐ Каталог Telegram Stars скоро появится!"
+        )
+    elif message.text == "📦 Мои заказы":
+        bot.send_message(
+            message.chat.id,
+            "📦 У вас пока нет заказов."
+        )
+    elif message.text == "💬 Поддержка":
+        bot.send_message(
+            message.chat.id,
+            "💬 Напишите администратору магазина."
+        )
+
+def run_bot():
+    bot.infinity_polling()
+
+Thread(target=run_bot, daemon=True).start()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
